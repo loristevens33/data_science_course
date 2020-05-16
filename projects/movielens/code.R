@@ -1,4 +1,4 @@
-### Data Creation
+## Data Creation
 
 # Install packages
 if(!require(tidyverse)) install.packages("tidyverse", repos = "http://cran.us.r-project.org")
@@ -72,8 +72,6 @@ test_set <- test_set %>%
   semi_join(train_set, by = "movieId") %>%
   semi_join(train_set, by = "userId")
 
-### Data Exploration and Visualization
-
 # Generate sample records of edx dataset
 head(edx) %>%
   knitr::kable()
@@ -89,12 +87,18 @@ edx %>%
 # Create bar chart by rating in edx dataset
 edx %>%
   group_by(rating) %>%
-  summarize(count = n(), millions = count/10^6) %>%
-  ggplot(aes(rating, millions)) +
-  geom_bar(stat="identity", show.legend = FALSE) +
-  xlab("Rating") +
-  ylab("Ratings (millions)") +
-  ggtitle("Volume of Ratings by Rating")
+  summarize(rpercent = n() / nrow(edx) * 100) %>%
+  ggplot(aes(rating, rpercent)) +
+  geom_col(color = "black",
+           fill = "gray50") +
+  xlab("Ratings") +
+  ylab("% of Ratings") +
+  geom_vline(aes(xintercept = 3.5),
+    size = 0.5, color = "blue",
+    linetype = "dashed") +
+  geom_text(aes(x = 2, y = 15, label = "Average = 3.5")) +
+  ggtitle("Distribution of Ratings") +
+  theme(plot.title = element_text(hjust = 0.5))
 
 # Create boxplot of movie ratings by year
 edx %>%
@@ -106,39 +110,49 @@ edx %>%
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   xlab("Year") +
   ylab("Ratings (log10)") +
-  ggtitle("Volume of Ratings by Year")
+  ggtitle("Volume of Ratings by Year")+
+  theme(plot.title = element_text(hjust = 0.5))
 
 # Create histogram of volume of ratings per movie
 edx %>%
   dplyr::count(movieId) %>%
   ggplot(aes(n)) +
-  geom_histogram() +
+  geom_histogram(color = "gray50") +
   scale_x_log10() +
+  geom_vline(aes(xintercept = 843),
+  size = 0.5, color = "blue",
+  linetype = "dashed") +
+  geom_text(aes(x = 8000, y = 500, label = "Average = 843")) +
   xlab("Ratings") +
   ylab("Movies") +
-  ggtitle("Volume of Ratings per Movie")
+  ggtitle("Ratings per Movie")+
+  theme(plot.title = element_text(hjust = 0.5))
 
 # Create histogram of volume of ratings per user
 edx %>%
   dplyr::count(userId) %>%
   ggplot(aes(n)) +
-  geom_histogram() +
+  geom_histogram(color = "gray50") +
   scale_x_log10() +
+  geom_vline(aes(xintercept = 129),
+  size = 0.5, color = "blue",
+  linetype = "dashed") +
+  geom_text(aes(x = 500, y = 5000, label = "Average = 129")) +
   xlab("Ratings") +
   ylab("Users") +
-  ggtitle("Volume of Ratings per User")
+  ggtitle("Ratings per User")+
+  theme(plot.title = element_text(hjust = 0.5))
 
 # Create histogram of mean ratings by user
 edx %>%
   group_by(userId) %>%
   summarize(mean_rating = mean(rating)) %>%
   ggplot(aes(mean_rating)) +
-  geom_histogram() +
+  geom_histogram(color = "gray50") +
   xlab("Mean Rating") +
   ylab("Users") +
-  ggtitle("Mean Ratings by User")
-
-### Data Modeling
+  ggtitle("Mean Ratings by User")+
+  theme(plot.title = element_text(hjust = 0.5))
 
 # Create RMSE function
 RMSE <- function(true_ratings, predicted_ratings){
@@ -229,11 +243,12 @@ rmses <- sapply(lambdas, function(l){
 
 # Plot lambas for evaluation
 qplot(lambdas, rmses) +
-  geom_vline(xintercept=4.75, col = "blue") +
+  geom_vline(xintercept=4.75, col = "blue", linetype = "dashed") +
   geom_text(data = data.frame(x=5.5, y=0.8654), mapping = aes(x, y, label="4.75"), color="blue") +
   xlab("Lambda") +
   ylab("RMSE") +
-  ggtitle("RMSE by Lambda")
+  ggtitle("RMSE by Lambda") +
+  theme(plot.title = element_text(hjust = 0.5))
 
 # Save optimal lambda for use in model
 lambda <- lambdas[which.min(rmses)]
@@ -263,8 +278,6 @@ print(model_3_rmse)
 # Add regularization model RMSE results to table
 rmse_results <- bind_rows(rmse_results, data_frame(Method = "Regularization Model", RMSE = model_3_rmse))
 rmse_results %>% knitr::kable()
-
-### Final Results
 
 # Calculate regularized estimate of b_i
 b_i <- edx %>%
@@ -297,7 +310,10 @@ rmse_results %>%
   mutate(Method = reorder(Method, RMSE)) %>%
   ggplot(aes(Method, RMSE)) +
   geom_bar(stat="identity", show.legend = FALSE) +
+  geom_col(color = "black",
+           fill = "gray50") +
   coord_flip() +
   xlab("Model") +
   ylab("RMSE") +
-  ggtitle("RMSE by Model")
+  ggtitle("RMSE by Model") +
+  theme(plot.title = element_text(hjust = 0.15))

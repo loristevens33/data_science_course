@@ -1,15 +1,15 @@
 ---
 title: "Movie Recommendation System"
 author: "Lori Stevens"
-date: "5/11/2020"
-output: 
-    html_document:
-      theme: united
-      highlight: tango
-      number_sections: TRUE
+date: "`r format(Sys.time(), '%m/%d/%Y')`"
+output:
+  word_document:
+    toc: TRUE
+    toc_depth: 3
+    fig_height: 3
 ---
 ***
-# Introduction
+# 1 Introduction
 
 Recommendation systems are designed to understand and predict user preferences based on observed behavior. This is a critical form of machine learning in Retail and e-Commerce industries to personalize interactions with customers. Many consumers interact with recommendation systems daily, receiving suggestions for products or movies of interest on websites and streaming services.
 
@@ -19,11 +19,11 @@ This report details the creation of a movie recommendation system using the Movi
 
 Four models are created and compared in this report. The **root mean squared error (RMSE)** is used to evaluate and identify the best performing algorithm. The RMSE is a measure of the algorithm's error in the prediction of user ratings. The goal is to have an RMSE significantly lower than the baseline RMSE to be calculated in the modeling process. All code is referenced directly in this report to allow for easy review of approach, findings, and code.
 
-# Analysis
+# 2 Analysis
 
 This section explains the process and techniques used, including data creation, exploration, visualization, modeling approach, and insights.
 
-## Data Creation
+## 2.1 Data Creation
 
 The first step is to create the edx and validation datasets. The edx dataset is further split into a train and test dataset, to train and test the models. The validation dataset will be used to evaluate the performance of the final algorithm.
 
@@ -101,7 +101,7 @@ test_set <- test_set %>%
   semi_join(train_set, by = "userId")
 ```
 
-## Data Exploration and Visualization
+## 2.2 Data Exploration and Visualization
 
 The dataset includes seven variables including the User ID, Movie ID, Genre, Title, Rating, Timestamp, and Year. Each row is representative of a movie rating by a single user. The genre assigned can be inclusive of a combination of defined genres. An example of the data is as follows:
 
@@ -133,12 +133,18 @@ Users have a tendency to rate movies higher overall, with the most frequent rati
 # Create bar chart by rating in edx dataset
 edx %>%
   group_by(rating) %>%
-  summarize(count = n(), millions = count/10^6) %>%
-  ggplot(aes(rating, millions)) +
-  geom_bar(stat="identity", show.legend = FALSE) +
-  xlab("Rating") +
-  ylab("Ratings (millions)") +
-  ggtitle("Volume of Ratings by Rating")
+  summarize(rpercent = n() / nrow(edx) * 100) %>%
+  ggplot(aes(rating, rpercent)) +
+  geom_col(color = "black",
+           fill = "gray50") +
+  xlab("Ratings") +
+  ylab("% of Ratings") +
+  geom_vline(aes(xintercept = 3.5),
+    size = 0.5, color = "blue",
+    linetype = "dashed") +
+  geom_text(aes(x = 2, y = 15, label = "Average = 3.5")) +
+  ggtitle("Distribution of Ratings") +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 The median number of ratings per movie has been declining over the years included in the dataset. 2009 was excluded from the chart below as only 5 days of data was available.
@@ -154,7 +160,8 @@ edx %>%
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   xlab("Year") +
   ylab("Ratings (log10)") +
-  ggtitle("Volume of Ratings by Year")
+  ggtitle("Volume of Ratings by Year")+
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 The volume of ratings each movie has received varies significantly, with select movies having a very large or small number of ratings associated. It can be seen in the chart below that there is a particularly large volume of outliers with a single rating.
@@ -166,11 +173,16 @@ To ensure that these outliers do not impact the model, **regularization** is use
 edx %>%
   dplyr::count(movieId) %>%
   ggplot(aes(n)) +
-  geom_histogram() +
+  geom_histogram(color = "gray50") +
   scale_x_log10() +
+  geom_vline(aes(xintercept = 843),
+  size = 0.5, color = "blue",
+  linetype = "dashed") +
+  geom_text(aes(x = 8000, y = 500, label = "Average = 843")) +
   xlab("Ratings") +
   ylab("Movies") +
-  ggtitle("Volume of Ratings per Movie")
+  ggtitle("Ratings per Movie")+
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 It can be seen in the chart below that many users have rated a large volume of movies. To account for this, a penalty term for users is incorporated into the model as well.
@@ -180,11 +192,16 @@ It can be seen in the chart below that many users have rated a large volume of m
 edx %>%
   dplyr::count(userId) %>%
   ggplot(aes(n)) +
-  geom_histogram() +
+  geom_histogram(color = "gray50") +
   scale_x_log10() +
+  geom_vline(aes(xintercept = 129),
+  size = 0.5, color = "blue",
+  linetype = "dashed") +
+  geom_text(aes(x = 500, y = 5000, label = "Average = 129")) +
   xlab("Ratings") +
   ylab("Users") +
-  ggtitle("Volume of Ratings per User")
+  ggtitle("Ratings per User")+
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 In addition, users vary significantly on how critical they are with their ratings. Select users have a tendency to give lower or higher than average star ratings. A penalty term for highly critical users is also incorporated into the model to account for this.
@@ -195,13 +212,14 @@ edx %>%
   group_by(userId) %>%
   summarize(mean_rating = mean(rating)) %>%
   ggplot(aes(mean_rating)) +
-  geom_histogram() +
+  geom_histogram(color = "gray50") +
   xlab("Mean Rating") +
   ylab("Users") +
-  ggtitle("Mean Ratings by User")
+  ggtitle("Mean Ratings by User")+
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
-## Data Modeling
+## 2.3 Data Modeling
 
 The **root mean squared error (RMSE)** is used to evaluate and identify the best performing algorithm. The RMSE is a measure of the algorithm's error in the prediction of user ratings. The function that computes the RMSE is as follows:
 
@@ -215,7 +233,7 @@ RMSE <- function(true_ratings, predicted_ratings){
 
 A successful model will have an RMSE significantly lower than the baseline RMSE. The baseline RMSE is calculated by a basic model that assumes the same rating for all movies and users. The additional models incorporate penalty terms for small sample sizes and highly active or critical users.
 
-### Baseline Model
+### 2.3.1 Baseline Model
 
 The baseline model is simple model that makes the assumption that all differences in movie ratings are explained by random variation. $\mu$ represents the true rating for all movies and users, and $\epsilon$ represents independent errors sampled from the same distribution centered at zero.
 
@@ -236,7 +254,7 @@ rmse_results <- data_frame(Method = "Baseline Model", RMSE = naive_rmse)
 rmse_results %>% knitr::kable()
 ```
 
-### Movie Effect Model
+### 2.3.2 Movie Effect Model
 
 To improve the model, a penalty term, $b_{i}$, is incorporated that represents the average rating for each movie, ${i}$. This will take into account the bias, $b$, that popular movies are generally rated higher, and vice versa for unpopular movies.
 
@@ -268,7 +286,7 @@ rmse_results <- bind_rows(rmse_results, data_frame(Method = "Movie Effect Model"
 rmse_results %>% knitr::kable()
 ```
 
-### User Effect Model
+### 2.3.3 User Effect Model
 
 To further improve the model, the penalty term, $b_{u}$, is incorporated that represents the average rating for each user, ${u}$. This will take into account the bias, $b$, that some users have a tendency to either be highly critical or overly positive in their ratings of movies. This also includes the movie effect from the previous model, $b_{i}$.
 
@@ -299,7 +317,7 @@ rmse_results <- bind_rows(rmse_results, data_frame(Method = "User Effect Model",
 rmse_results %>% knitr::kable()
 ```
 
-### Regularization Model
+### 2.3.4 Regularization Model
 
 The final improvement to the model is **regularization**. This will penalize large estimates that come from small sample sizes. This will take into account that some movies have very few ratings and some users only rated a small number of movies. To ensure that these small sample sizes do not influence the prediction, the tuning parameter lambda, $\lambda$, is identified through this process and incorporated into the model. This model also includes the movie effect and user effect from the previous model, $b_{i}$ and $b_{u}$ respectively.
 
@@ -330,11 +348,12 @@ rmses <- sapply(lambdas, function(l){
 
 # Plot lambas for evaluation
 qplot(lambdas, rmses) +
-  geom_vline(xintercept=4.75, col = "blue") +
+  geom_vline(xintercept=4.75, col = "blue", linetype = "dashed") +
   geom_text(data = data.frame(x=5.5, y=0.8654), mapping = aes(x, y, label="4.75"), color="blue") +
   xlab("Lambda") +
   ylab("RMSE") +
-  ggtitle("RMSE by Lambda")
+  ggtitle("RMSE by Lambda") +
+  theme(plot.title = element_text(hjust = 0.5))
 
 # Save optimal lambda for use in model
 lambda <- lambdas[which.min(rmses)]
@@ -368,7 +387,7 @@ rmse_results <- bind_rows(rmse_results, data_frame(Method = "Regularization Mode
 rmse_results %>% knitr::kable()
 ```
 
-# Results
+# 3 Results
 
 The final step is to evaluate the final model with the validation dataset. In prior steps, the train and test dataset have been utilized to identify the best model. The validation dataset is then used to evaluate the performance of the final algorithm. The final RMSE is **0.8648**.
 
@@ -400,7 +419,7 @@ rmse_results <- bind_rows(rmse_results, data_frame(Method = "RMSE w/Validation",
 rmse_results %>% knitr::kable()
 ```
 
-# Conclusion
+# 4 Conclusion
 
 By taking into account movie and user bias as well as regularization to address sample size variation, the machine learning algorithm to predict ratings and recommend movies was improved significantly. The model that included all elements incorporated has a low RMSE of **0.8648**.
 
@@ -410,10 +429,13 @@ rmse_results %>%
   mutate(Method = reorder(Method, RMSE)) %>%
   ggplot(aes(Method, RMSE)) +
   geom_bar(stat="identity", show.legend = FALSE) +
+  geom_col(color = "black",
+           fill = "gray50") +
   coord_flip() +
   xlab("Model") +
   ylab("RMSE") +
-  ggtitle("RMSE by Model")
+  ggtitle("RMSE by Model") +
+  theme(plot.title = element_text(hjust = 0.15))
 ```
 
 The RMSE may be further improved through evaluation and incorporation of other potential effects. Examples could include but are not limited to genre preferences and trends in ratings over time. The possibilities are endless, however, limited in this case to the data available within the MovieLens dataset.
