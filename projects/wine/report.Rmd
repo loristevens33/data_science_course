@@ -12,15 +12,15 @@ output:
 
 # 1 Introduction
 
-The quality of wine is difficult to define, as many aspects are subjective. However, wine quality is critical in the industry and is monitored in many stages of the product lifecycle by winemakers, distributors, merchants, critics, and sommeliers. Quality assurance teams conduct physicochemical and sensory analysis to ensure quality. In order to do this, it is critical to define what attributes and levels constitute quality. Statistical modeling techniques can be used to understand and predict wine quality based on observed characteristics.
+The quality of wine is difficult to define, as many aspects are subjective. However, wine quality is critical in the industry and is monitored in many stages of the product lifecycle by winemakers, distributors, merchants, critics, and sommeliers. Quality assurance teams conduct physiochemical and sensory analysis to ensure quality. In order to do this, it is critical to define what attributes and levels constitute quality. Statistical modeling techniques can be used to understand and predict wine quality based on observed characteristics.
 
 This report details the evaluation of statistical models to predict wine quality using the Wine Quality datasets available in the UCI repository. The datasets are inclusive of "Vinho Verde" red and white wine from Portugal. The objective is to evaluate models to predict wine quality utilizing the Wine Quality datasets. This is a collection of 6,500 ratings released in October 2009. Variables are described in detail in the **Data Creation** section. The full dataset is available at the following location:
 
 <https://archive.ics.uci.edu/ml/datasets/Wine+Quality>
 
-As the data is limited to Vinho Verde, which is most commonly white, the final model would need to be further evaluated on a more broad dataset to ensure the same characteristics and levels can be assumed on other varietals.
+As the data is limited to Vinho Verde, which is most commonly white, the final model would need to be further evaluated on a broader dataset to ensure the same characteristics and levels can be assumed on other varietals.
 
-Seven statistical models are created and levels of accuracy compared in this report to determine the best model to predict quality. Most code is referenced directly in this report to allow for easy review of approach, findings, and code.
+Seven statistical models are created, and levels of accuracy compared in this report to determine the best model to predict quality. Most code is referenced directly in this report to allow for easy review of approach, findings, and code.
 
 # 2 Analysis
 
@@ -98,7 +98,7 @@ The following variables are included in the dataset:
 
 7. Total Sulfur Dioxide$(mg/dm^3)$: the total amount of SO2; high levels can result in a change in taste and color.
 
-8. Density$(g/cm^3)$: the total mass per volume of alcohol, sugar and water; the more alcohol a wine contains should decrease the overall density.
+8. Density$(g/cm^3)$: the total mass per volume of alcohol, sugar, and water; the more alcohol a wine contains should decrease the overall density.
 
 9. pH: a measurement of acidity; low pH wines can taste crisp, and high pH wines can taste sour and are more susceptible to bacterial growth.
 
@@ -110,7 +110,7 @@ The following variables are included in the dataset:
 
 13. Type: classification of wine as red or white; 75% of the dataset is white wine given that Vinho Verde is most commonly white.
 
-Due to privacy issues, important characteristics such as brand, vintage, and cost were not included in the dataset. Hence, these can not be taken into account in the analysis.
+Due to privacy issues, important characteristics such as brand, vintage, and cost were not included in the dataset. Hence, these cannot be considered in the analysis.
 
 An example of the data is as follows:
 
@@ -119,7 +119,7 @@ An example of the data is as follows:
 head(wine_quality)
 ```
 
-A summary of the dataset validates that there are no missing values. Quality is on a 10-point scale, and assigned in whole numbers only.
+A summary of the dataset validates that there are no missing values. Quality is on a 10-point scale and assigned in whole numbers only.
 
 ```{r Data Summary, echo=TRUE, message=FALSE, warning=FALSE}
 # Generate summary of dataset
@@ -132,7 +132,7 @@ In this section, the data is evaluated to determine distribution and any correla
 
 ### 2.2.1 Distribution
 
-Overall, distribution appears normal for many variables. Citric acid, residual sugar, density and ABV have abnormal distributions. In most variables, there is a shift in levels between red and wine wine, which is to be expected.
+Overall, distribution appears normal for many variables. Citric acid, residual sugar, density and ABV have abnormal distributions. In most variables, there is a shift in levels between red and white wine, which is to be expected.
 
 ```{r Fixed Acidity Density Plot, echo=TRUE, message=FALSE, warning=FALSE}
 # Create density plot of fixed acidity by wine type
@@ -455,7 +455,7 @@ cor_tsulf %>% knitr::kable()
 
 ### 2.2.9 Density
 
-Density is measured as the total mass per volume of acohol, sugar and water in $g/cm^3$. The more alcohol a wine contains should decrease the overall density. As there are some extreme outliers, this has been displayed in log scale and two outliers greater than 1.01 have been excluded. The highest quality wines had a lower density, likely driven by ABV.
+Density is measured as the total mass per volume of alcohol, sugar, and water in $g/cm^3$. The more alcohol a wine contains should decrease the overall density. As there are some extreme outliers, this has been displayed in log scale and two outliers greater than 1.01 have been excluded. The highest quality wines had a lower density, likely driven by ABV.
 
 ```{r Density Boxplot, echo=TRUE, message=FALSE, warning=FALSE}
 # Create boxplot of density by wine type
@@ -1063,7 +1063,7 @@ In conclusion, the random forest model is the optimal model to predict wine qual
 
 As the current model is limited, and missing information that could drive quality and scores overall, prior to moving forward on a broader dataset it would be critical to repeat this exercise to evaluate variable relationships and model accuracy.
 
-The findings of this analysis will be valuable to build a future, more sophisticated model to support the quality assurance process in all stages of the product lifecycle.  Improving quality assurance processes will effectively reduce risks associated with poor quality product such a increased cost, poor product ratings impacting revenue potential, decreased customer satisfaction, and in worst case scenarios, product recall. Early detection of quality issues can mitigate downstream risk.
+The findings of this analysis will be valuable to build a future, more sophisticated model to support the quality assurance process in all stages of the product lifecycle.  Improving quality assurance processes will effectively reduce risks associated with poor quality product such as increased cost, poor product ratings impacting revenue potential, decreased customer satisfaction, and in worst case scenarios, product recall. Early detection of quality issues can mitigate downstream risk.
 
 **References**
 
